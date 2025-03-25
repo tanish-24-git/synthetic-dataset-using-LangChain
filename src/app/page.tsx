@@ -1,119 +1,114 @@
-"use client"
-import { useState, useCallback } from "react"
-import axios, { AxiosError } from "axios"
-import FileSaver from "file-saver"
+"use client";
+import { useState, useCallback } from "react";
+import axios, { AxiosError } from "axios";
+import { saveAs } from "file-saver";
 
-type DatasetRow = Record<string, string | number>
+type DatasetRow = Record<string, string | number>;
 
 export default function Home() {
-  const [prompt, setPrompt] = useState<string>("")
-  const [rows, setRows] = useState<number>(10)
-  const [loading, setLoading] = useState<boolean>(false)
-  const [error, setError] = useState<string | null>(null)
-  const [dataset, setDataset] = useState<DatasetRow[]>([])
-  const [headers, setHeaders] = useState<string[]>([])
-  const [showDataset, setShowDataset] = useState<boolean>(false)
-  const [activeTab, setActiveTab] = useState<"generate" | "view">("generate")
+  const [prompt, setPrompt] = useState<string>("");
+  const [rows, setRows] = useState<number>(10);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dataset, setDataset] = useState<DatasetRow[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [showDataset, setShowDataset] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"generate" | "view">("generate");
 
   const examplePrompts = [
     "Generate employees with name, age, department, salary",
     "Create a dataset of products with name, category, price, and stock quantity",
     "Generate customer data with name, email, purchase amount, and loyalty status",
     "Create a dataset of cities with name, country, population, and climate",
-  ]
+  ];
 
   const handleGenerateData = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
+    setShowDataset(false);
 
     try {
       const response = await axios.post(
         "http://localhost:8000/generate-data",
         { prompt, rows },
-        { responseType: "blob" },
-      )
+        { responseType: "blob" }
+      );
 
-      const blob = new Blob([response.data], { type: "text/csv" })
-
-      // Read the blob as text to parse CSV
-      const text = await blob.text()
-      const parsedData = parseCSV(text)
+      const blob = new Blob([response.data], { type: "text/csv" });
+      const text = await blob.text();
+      const parsedData = parseCSV(text);
 
       if (parsedData.length > 0) {
-        setHeaders(Object.keys(parsedData[0]))
-        setDataset(parsedData)
-        setShowDataset(true)
-        setActiveTab("view")
+        setHeaders(Object.keys(parsedData[0]));
+        setDataset(parsedData);
+        setShowDataset(true);
+        setActiveTab("view");
+      } else {
+        setError("No valid data returned from the server.");
       }
 
-      // Save the blob
-      FileSaver.saveAs(blob, "synthetic_data.csv")
+      saveAs(blob, "synthetic_data.csv");
     } catch (err) {
       const errorMessage =
         err instanceof AxiosError
-          ? err.response?.data?.detail || "An error occurred while generating data."
-          : "An unexpected error occurred."
-      setError(errorMessage)
-      console.error("Error generating data:", err)
+          ? err.response?.data?.detail || "Network error: Ensure the backend is running at http://localhost:8000."
+          : "An unexpected error occurred.";
+      setError(errorMessage);
+      console.error("Error generating data:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const parseCSV = (csvText: string): DatasetRow[] => {
-    const lines = csvText.split("\n")
-    if (lines.length < 2) return []
+    const lines = csvText.trim().split("\n");
+    if (lines.length < 2) return [];
 
-    const headers = lines[0].split(",")
-    const result: DatasetRow[] = []
+    const headers = lines[0].split(",").map((h) => h.trim());
+    const result: DatasetRow[] = [];
 
     for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue
+      if (!lines[i].trim()) continue;
 
-      const values = lines[i].split(",")
-      const row: DatasetRow = {}
+      const values = lines[i].split(",").map((v) => v.trim());
+      if (values.length !== headers.length) continue;
 
+      const row: DatasetRow = {};
       headers.forEach((header, index) => {
-        const value = values[index]?.trim() || ""
-        // Try to convert to number if possible
-        row[header] = isNaN(Number(value)) ? value : Number(value)
-      })
-
-      result.push(row)
+        const value = values[index] || "";
+        row[header] = isNaN(Number(value)) ? value : Number(value);
+      });
+      result.push(row);
     }
 
-    return result
-  }
+    return result;
+  };
 
   const downloadCSV = () => {
-    if (dataset.length === 0) return
+    if (dataset.length === 0) return;
 
     const csvContent = [
       headers.join(","),
       ...dataset.map((row) => headers.map((header) => row[header]).join(",")),
-    ].join("\n")
+    ].join("\n");
 
-    const blob = new Blob([csvContent], { type: "text/csv" })
-    FileSaver.saveAs(blob, "synthetic_data.csv")
-  }
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    saveAs(blob, "synthetic_data.csv");
+  };
 
-  const useExamplePrompt = useCallback(
+  const handleExamplePromptClick = useCallback(
     (examplePrompt: string) => {
-      setPrompt(examplePrompt)
+      setPrompt(examplePrompt);
     },
-    [setPrompt],
-  )
-
-  const handleExamplePromptClick = (examplePrompt: string) => {
-    setPrompt(examplePrompt)
-  }
+    []
+  );
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-6">
       <div className="w-full max-w-4xl gradient-border p-1">
         <div className="bg-card text-card-foreground p-6 rounded-md">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Synthetic Dataset Generator
             </h1>
             <div className="flex space-x-2">
@@ -144,12 +139,12 @@ export default function Home() {
           {activeTab === "generate" && (
             <div className="space-y-6">
               <div>
-                <label htmlFor="prompt" className="block text-sm font-medium mb-2">
+                <label htmlFor="prompt" className="block text-sm font-medium mb-2 text-foreground">
                   Dataset Description
                 </label>
                 <textarea
                   id="prompt"
-                  className="w-full p-3 bg-muted text-foreground border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-70"
+                  className="w-full p-3 bg-muted text-foreground border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-70 resize-none"
                   rows={4}
                   placeholder="e.g., 'Generate employees with name, age, department, salary'"
                   value={prompt}
@@ -159,13 +154,14 @@ export default function Home() {
               </div>
 
               <div>
-                <p className="text-sm font-medium mb-2">Example Prompts:</p>
+                <p className="text-sm font-medium mb-2 text-foreground">Example Prompts:</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {examplePrompts.map((examplePrompt, index) => (
                     <button
                       key={index}
-                      className="text-left p-2 text-sm bg-muted/50 hover:bg-muted rounded-md truncate"
+                      className="text-left p-2 text-sm bg-muted/50 hover:bg-muted rounded-md truncate text-foreground"
                       onClick={() => handleExamplePromptClick(examplePrompt)}
+                      disabled={loading}
                     >
                       {examplePrompt}
                     </button>
@@ -174,30 +170,19 @@ export default function Home() {
               </div>
 
               <div>
-                <label htmlFor="rows" className="block text-sm font-medium mb-2">
+                <label htmlFor="rows" className="block text-sm font-medium mb-2 text-foreground">
                   Number of Rows
                 </label>
-                <div className="flex items-center">
-                  <input
-                    id="rows"
-                    type="range"
-                    className="w-full mr-4"
-                    min={1}
-                    max={100}
-                    value={rows}
-                    onChange={(e) => setRows(Number.parseInt(e.target.value))}
-                    disabled={loading}
-                  />
-                  <input
-                    type="number"
-                    className="w-20 p-2 bg-muted text-foreground border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                    value={rows}
-                    onChange={(e) => setRows(Math.max(1, Number.parseInt(e.target.value) || 1))}
-                    min={1}
-                    max={100}
-                    disabled={loading}
-                  />
-                </div>
+                <input
+                  id="rows"
+                  type="number"
+                  className="w-full p-3 bg-muted text-foreground border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-70 no-arrows"
+                  placeholder="Enter number of rows"
+                  value={rows}
+                  onChange={(e) => setRows(Math.max(1, Number.parseInt(e.target.value) || 1))}
+                  min={1}
+                  disabled={loading}
+                />
               </div>
 
               <button
@@ -208,7 +193,7 @@ export default function Home() {
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-primary-foreground"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
@@ -220,12 +205,12 @@ export default function Home() {
                         r="10"
                         stroke="currentColor"
                         strokeWidth="4"
-                      ></circle>
+                      />
                       <path
                         className="opacity-75"
                         fill="currentColor"
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
+                      />
                     </svg>
                     Generating...
                   </div>
@@ -234,14 +219,18 @@ export default function Home() {
                 )}
               </button>
 
-              {error && <div className="p-3 bg-red-900/30 border border-red-500 text-red-300 rounded-md">{error}</div>}
+              {error && (
+                <div className="p-3 bg-destructive/20 border border-destructive text-destructive rounded-md">
+                  {error}
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === "view" && dataset.length > 0 && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Generated Dataset</h2>
+                <h2 className="text-xl font-semibold text-foreground">Generated Dataset</h2>
                 <button
                   onClick={downloadCSV}
                   className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
@@ -255,7 +244,9 @@ export default function Home() {
                   <thead>
                     <tr>
                       {headers.map((header, index) => (
-                        <th key={index}>{header}</th>
+                        <th key={index} className="text-foreground">
+                          {header}
+                        </th>
                       ))}
                     </tr>
                   </thead>
@@ -263,7 +254,9 @@ export default function Home() {
                     {dataset.map((row, rowIndex) => (
                       <tr key={rowIndex}>
                         {headers.map((header, colIndex) => (
-                          <td key={`${rowIndex}-${colIndex}`}>{row[header]}</td>
+                          <td key={`${rowIndex}-${colIndex}`} className="text-foreground">
+                            {row[header]}
+                          </td>
                         ))}
                       </tr>
                     ))}
@@ -284,6 +277,5 @@ export default function Home() {
         <p>Powered by LangChain and Gemini 1.5 Pro</p>
       </footer>
     </main>
-  )
+  );
 }
-

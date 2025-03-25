@@ -17,6 +17,8 @@
   --input: 51, 65, 85;
   --card: 30, 41, 59;
   --card-foreground: 255, 255, 255;
+  --destructive: 220, 38, 38;
+  --destructive-foreground: 255, 255, 255;
 }
 
 body {
@@ -99,3 +101,13 @@ body {
   background: rgba(var(--primary), 0.7);
 }
 
+/* Hide number input arrows */
+.no-arrows::-webkit-outer-spin-button,
+.no-arrows::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-arrows {
+  -moz-appearance: textfield; /* Firefox */
+}
