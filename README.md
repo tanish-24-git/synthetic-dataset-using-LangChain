@@ -140,5 +140,5 @@ Contributions are welcome! Please:
 ## 📬 Contact
 
 For questions or feedback, reach out to the project maintainer at:
-- GitHub: [tanish-24](https://github.com/tanish-24)
+- GitHub: [tanish-24-git](https://github.com/tanish-24-git)
 
