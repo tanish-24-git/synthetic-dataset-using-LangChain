@@ -141,8 +141,4 @@ Contributions are welcome! Please:
 
 For questions or feedback, reach out to the project maintainer at:
 - GitHub: [tanish-24](https://github.com/tanish-24)
-- Email: [your-email@example.com](mailto:your-email@example.com)
-
-Happy data generating! 🎉
-```
 
