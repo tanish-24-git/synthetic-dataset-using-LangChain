@@ -8,6 +8,7 @@ Welcome to the **Synthetic Dataset Generator**! This project combines a sleek **
 
 Here’s what’s inside the magic box:
 tanish-24-git-synthetic-dataset-using-langchain.git/
+'''
 ├── README.md               # 📜 You’re reading it!
 ├── eslint.config.mjs       # 🧹 ESLint configuration
 ├── next.config.ts          # ⚙️ Next.js configuration
@@ -25,7 +26,7 @@ tanish-24-git-synthetic-dataset-using-langchain.git/
 ├── layout.tsx      # 🏞️ Root layout for the app
 └── page.tsx        # 🖼️ Main page component
 
-
+'''
 ---
 
 ## 📜 Project Overview
