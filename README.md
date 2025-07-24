@@ -1,6 +1,6 @@
 
 
-```markdown
+
 # 🌌 Synthetic Dataset Generator with LangChain 🌌
 
 Welcome to the **Synthetic Dataset Generator**! This project combines a sleek **Next.js** frontend with a **FastAPI** backend powered by **LangChain** and Google’s **Gemini 1.5 Pro** to create realistic synthetic datasets. Whether you’re testing models or exploring data, this tool has you covered! 🚀
